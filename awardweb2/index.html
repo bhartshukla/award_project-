@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>VOID — Award Winning Digital Alchemy Studio</title>
+<!-- Preconnect for Performance -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Fonts: Modern Mix -->
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600&family=Inter:opsz,wght@14..32,200..700&display=swap" rel="stylesheet">
+<!-- GSAP + ScrollTrigger + CustomEase -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/CustomEase.min.js"></script>
+<!-- Three.js Core for Hero Experience -->
+<script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.128.0/build/three.module.js" } }
+</script>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  :root {
+    --bg-dark: #030304;
+    --bg-surface: #0b0b0f;
+    --glass-edge: rgba(255,255,255,0.04);
+    --border-glow: rgba(200,255,0,0.2);
+    --acid: #ccff00;
+    --acid-pure: #ccff00;
+    --magma: #ff3366;
+    --text-primary: #f0f0ed;
+    --text-muted: #a9a9b0;
+    --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  body {
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+    line-height: 1.2;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Grain Overlay Premium */
+  .grain-overlay {
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.022;
+    pointer-events: none;
+    z-index: 9998;
+    mix-blend-mode: overlay;
+  }
+  /* Cursor System Ultra-Precision */
+  .cursor-dot {
+    position: fixed;
+    width: 6px;
+    height: 6px;
+    background: var(--acid);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10001;
+    filter: blur(1px);
+    transition: transform 0.2s ease;
+  }
+  .cursor-ring {
+    position: fixed;
+    width: 44px;
+    height: 44px;
+    border: 1.5px solid rgba(204,255,0,0.6);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10000;
+    transition: all 0.4s var(--ease-expo);
+    backdrop-filter: blur(2px);
+  }
+  body.hover-active .cursor-ring {
+    width: 90px;
+    height: 90px;
+    border-color: var(--acid);
+    background: rgba(204,255,0,0.05);
+    backdrop-filter: blur(4px);
+  }
+  /* Scrollbar Luxury */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: #0a0a0c; }
+  ::-webkit-scrollbar-thumb { background: var(--acid); border-radius: 4px; }
+  /* Progress */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--acid), var(--magma));
+    width: 0%;
+    z-index: 10002;
+    box-shadow: 0 0 12px rgba(204,255,0,0.5);
+  }
+  /* Loader - Cinematic */
+  .preloader {
+    position: fixed;
+    inset: 0;
+    background: #010101;
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .preloader-text {
+    font-family: 'Syne', sans-serif;
+    font-size: 5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff, #ccff00);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  .preloader-bar {
+    width: 240px;
+    height: 2px;
+    background: rgba(255,255,255,0.1);
+    position: relative;
+    overflow: hidden;
+  }
+  .preloader-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background: var(--acid);
+    box-shadow: 0 0 10px var(--acid);
+  }
+  .preloader-percent {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 4px;
+    color: var(--text-muted);
+  }
+  /* Navigation */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1.8rem 3rem;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(0px);
+    transition: all 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    background: transparent;
+  }
+  nav.scrolled {
+    background: rgba(3,3,4,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(204,255,0,0.12);
+    padding: 1rem 3rem;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s;
+  }
+  .logo span { color: var(--acid); }
+  .nav-links {
+    display: flex;
+    gap: 3rem;
+    list-style: none;
+  }
+  .nav-links a {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: 0.3s;
+  }
+  .nav-links a:hover { color: var(--acid); }
+  .nav-cta {
+    background: var(--acid);
+    padding: 0.7rem 1.8rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: black;
+    text-decoration: none;
+    transition: transform 0.2s, background 0.3s;
+  }
+  .nav-cta:hover { background: white; transform: scale(0.98); }
+  /* Hero Section */
+  #hero {
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 4rem 6rem;
+  }
+  #three-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+  }
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 1200px;
+  }
+  .hero-badge {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 5px;
+    color: var(--acid);
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .hero-badge::before {
+    content: '';
+    width: 40px;
+    height: 2px;
+    background: var(--acid);
+  }
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(3.8rem, 12vw, 8rem);
+    font-weight: 800;
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.8rem;
+  }
+  .hero-title .line { display: block; overflow: hidden; }
+  .hero-title .word { display: inline-block; }
+  .hero-desc {
+    font-size: 1.2rem;
+    max-width: 500px;
+    color: var(--text-muted);
+    font-weight: 400;
+    line-height: 1.5;
+    overflow: hidden;
+  }
+  /* Marquee Premium */
+  .marquee-premium {
+    background: linear-gradient(90deg, var(--acid), #c0ff30);
+    padding: 0.9rem 0;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    z-index: 5;
+  }
+  .marquee-content {
+    display: inline-flex;
+    animation: marqueeScroll 24s linear infinite;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 1rem;
+    letter-spacing: 4px;
+    color: #010101;
+  }
+  .marquee-content span { margin: 0 2rem; display: inline-flex; align-items: center; gap: 1rem; }
+  .marquee-content span::after { content: '✦'; font-size: 0.8rem; }
+  @keyframes marqueeScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  /* Global Sections */
+  section {
+    padding: 8rem 2rem;
+  }
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+  .section-label {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 4px;
+    color: var(--acid);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .section-label::before {
+    content: '';
+    width: 32px;
+    height: 1px;
+    background: var(--acid);
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+  }
+  /* Work Cards Horizontal */
+  .horizontal-wrap {
+    overflow: hidden;
+    padding: 2rem 0;
+  }
+  .horizontal-track {
+    display: flex;
+    gap: 2rem;
+    will-change: transform;
+  }
+  .work-card {
+    min-width: 480px;
+    background: var(--bg-surface);
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.4s;
+  }
+  .work-card:hover { border-color: var(--acid); transform: translateY(-5px); }
+  .card-media {
+    height: 320px;
+    background: radial-gradient(circle at 30% 40%, #1a1a1f, #020202);
+    position: relative;
+    overflow: hidden;
+  }
+  /* Stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.05);
+    margin-top: 2rem;
+  }
+  .stat-item {
+    background: var(--bg-dark);
+    padding: 2rem;
+  }
+  .stat-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 3.8rem;
+    font-weight: 700;
+    color: var(--acid);
+  }
+  /* Interactive Experience Canvas */
+  .interactive-canvas {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #050507;
+    border-radius: 2rem;
+    border: 1px solid rgba(204,255,0,0.2);
+    overflow: hidden;
+  }
+  canvas.exp-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  /* Pricing */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.05);
+  }
+  .pricing-card {
+    background: var(--bg-dark);
+    padding: 2.5rem;
+    position: relative;
+    transition: all 0.4s;
+  }
+  .pricing-card.popular {
+    background: #101014;
+    border-left: 1px solid var(--acid);
+    border-right: 1px solid var(--acid);
+  }
+  /* CTA Section */
+  .cta-glow {
+    text-align: center;
+    position: relative;
+    background: radial-gradient(circle at center, rgba(204,255,0,0.08) 0%, transparent 70%);
+  }
+  .btn {
+    display: inline-flex;
+    padding: 1rem 2.5rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    transition: 0.3s;
+    text-decoration: none;
+    cursor: none;
+  }
+  .btn-primary {
+    background: var(--acid);
+    color: black;
+  }
+  .btn-outline {
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+  }
+  /* Footer */
+  footer {
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding: 4rem 2rem 2rem;
+  }
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .grid-2 { grid-template-columns: 1fr; gap: 2rem; }
+    .work-card { min-width: 280px; }
+    .pricing-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="preloader" id="preloader">
+  <div class="preloader-text" id="preloaderText">VOID</div>
+  <div class="preloader-bar"><div class="preloader-fill" id="preloaderFill"></div></div>
+  <div class="preloader-percent" id="preloaderPercent">0%</div>
+</div>
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="progress-bar" id="progressBar"></div>
+<div class="grain-overlay"></div>
+
+<nav id="navbar">
+  <a href="#" class="logo">VOID<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="#about">Manifesto</a></li>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#services">Craft</a></li>
+    <li><a href="#pricing">Investment</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Ignite</a>
+</nav>
+
+<section id="hero">
+  <canvas id="three-canvas"></canvas>
+  <div class="hero-content">
+    <div class="hero-badge">Digital Alchemy • Est. 2025</div>
+    <div class="hero-title">
+      <div class="line"><span class="word">SCULPTING</span></div>
+      <div class="line"><span class="word">THE</span> <span class="word">IMPOSSIBLE</span></div>
+      <div class="line"><span class="word">INTO</span> <span class="word">EXISTENCE</span></div>
+    </div>
+    <div class="hero-desc"><span>We don't design websites. We engineer digital mythology that shifts perception and wins the internet's most coveted accolades.</span></div>
+  </div>
+</section>
+
+<div class="marquee-premium">
+  <div class="marquee-content">
+    <span>AWWWARDS SOTD</span><span>FWA OF THE YEAR</span><span>CSS DESIGN AWARDS</span><span>CLIO DIGITAL GOLD</span><span>WEBBY NOMINEE</span>
+    <span>AWWWARDS SOTD</span><span>FWA OF THE YEAR</span><span>CSS DESIGN AWARDS</span><span>CLIO DIGITAL GOLD</span><span>WEBBY NOMINEE</span>
+  </div>
+</div>
+
+<section id="about">
+  <div class="container">
+    <div class="grid-2">
+      <div>
+        <div class="section-label">Manifesto</div>
+        <h2 style="font-family:'Syne';font-size:clamp(2.8rem,5vw,4rem);font-weight:700;line-height:1.1;">We are architects of <span style="color:var(--acid)">digital emotion</span>.</h2>
+        <p style="margin-top:2rem;color:var(--text-muted);line-height:1.7;">VOID is a collective of award-winning engineers, artists, and storytellers. Every interaction is intentional, every frame cinematic. We've shaped digital identities for global icons and emerging visionaries — delivering experiences that transcend screens.</p>
+        <div class="stats-grid" id="statsSection">
+          <div class="stat-item"><div class="stat-number" data-count="287">0</div><div>Projects</div></div>
+          <div class="stat-item"><div class="stat-number" data-count="36">0</div><div>Industry Awards</div></div>
+          <div class="stat-item"><div class="stat-number" data-count="100" data-suffix="%">0</div><div>Client Retention</div></div>
+          <div class="stat-item"><div class="stat-number" data-count="9">0</div><div>Years of Pulse</div></div>
+        </div>
+      </div>
+      <div style="background: radial-gradient(circle at 30% 40%, #1a1a1f, #010101);border-radius:2rem;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;font-size:5rem;border:1px solid rgba(204,255,0,0.2);">✦</div>
+    </div>
+  </div>
+</section>
+
+<section id="services">
+  <div class="container">
+    <div class="section-label">Disciplines</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2px;background:rgba(255,255,255,0.05);margin-top:2rem;">
+      <div class="pricing-card" style="background:var(--bg-surface);"><h3 style="font-size:2rem;color:var(--acid);">01</h3><h4 style="margin:1rem 0;">WebGL Universe</h4><p style="color:var(--text-muted);">Immersive 3D narratives that break the boundaries of browser.</p></div>
+      <div class="pricing-card" style="background:var(--bg-surface);"><h3 style="font-size:2rem;color:var(--acid);">02</h3><h4 style="margin:1rem 0;">Brand Alchemy</h4><p style="color:var(--text-muted);">Identities with soul, visual systems that command attention.</p></div>
+      <div class="pricing-card" style="background:var(--bg-surface);"><h3 style="font-size:2rem;color:var(--acid);">03</h3><h4 style="margin:1rem 0;">Motion Architecture</h4><p style="color:var(--text-muted);">Cinematic animation & interactive storytelling.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="work">
+  <div class="container">
+    <div class="section-label">Selected Legends</div>
+    <div class="horizontal-wrap">
+      <div class="horizontal-track" id="horizontalTrack">
+        <div class="work-card"><div class="card-media" style="background:linear-gradient(145deg,#202020,#000000)"></div><div style="padding:1.5rem;"><span class="section-label" style="margin:0;">✦ NEXUS</span><h3>Digital Ecosystem</h3></div></div>
+        <div class="work-card"><div class="card-media" style="background:linear-gradient(145deg,#2a1a3a,#000)"></div><div style="padding:1.5rem;"><span class="section-label" style="margin:0;">✦ AETHER</span><h3>3D Configurator</h3></div></div>
+        <div class="work-card"><div class="card-media" style="background:linear-gradient(145deg,#1a2a2a,#000)"></div><div style="padding:1.5rem;"><span class="section-label" style="margin:0;">✦ LUMINA</span><h3>Brand Evolution</h3></div></div>
+        <div class="work-card"><div class="card-media" style="background:linear-gradient(145deg,#2a2a1a,#000)"></div><div style="padding:1.5rem;"><span class="section-label" style="margin:0;">✦ ORACLE</span><h3>Immersive Install</h3></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="interactiveExp">
+  <div class="container">
+    <div class="grid-2">
+      <div><div class="section-label">Sensory Playground</div><h2 style="font-family:'Syne';font-size:3rem;">Move your cursor. Feel the <span style="color:var(--acid)">response.</span></h2><p style="margin-top:1rem;color:var(--text-muted);">Every pixel breathes. Our interactive canvas reacts to your presence — a glimpse into our philosophy.</p></div>
+      <div class="interactive-canvas"><canvas id="interactiveCanvas" class="exp-canvas"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="container">
+    <div class="section-label">Investment</div>
+    <div class="pricing-grid">
+      <div class="pricing-card"><h3>Essential</h3><div style="font-size:3rem;font-weight:800;margin:1rem 0;">$8k</div><ul style="list-style:none;margin:1rem 0;"><li>→ Brand Identity</li><li>→ 5 Pages</li><li>→ Motion Essentials</li></ul><a href="#" class="btn btn-outline" style="display:inline-block;margin-top:1rem;">Inquire</a></div>
+      <div class="pricing-card popular"><h3>Studio</h3><div style="font-size:3rem;font-weight:800;margin:1rem 0;">$24k</div><ul style="list-style:none;margin:1rem 0;"><li>→ Full Digital Universe</li><li>→ WebGL/3D Integration</li><li>→ Award-Winning Polish</li></ul><a href="#" class="btn btn-primary" style="display:inline-block;">Select</a></div>
+      <div class="pricing-card"><h3>Bespoke</h3><div style="font-size:2rem;font-weight:800;margin:1rem 0;">Custom Retainer</div><ul style="list-style:none;margin:1rem 0;"><li>→ Dedicated Team</li><li>→ Creative Partnership</li><li>→ Infinite Horizons</li></ul><a href="#" class="btn btn-outline">Let's talk</a></div>
+    </div>
+  </div>
+</section>
+
+<div class="cta-glow" style="padding:6rem 2rem;text-align:center;">
+  <div class="section-label" style="justify-content:center;">Begin the ritual</div>
+  <h2 style="font-family:'Syne';font-size:clamp(3rem,8vw,6rem);">Let's build the<br>unforgettable.</h2>
+  <div style="margin-top:2rem;"><a href="#" class="btn btn-primary" style="margin-right:1rem;">Start Project →</a><a href="#" class="btn btn-outline">Explore Process</a></div>
+</div>
+
+<footer>
+  <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:2rem;"><div><div class="logo" style="margin-bottom:1rem;">VOID<span>.</span></div><p style="color:var(--text-muted);max-width:280px;">Digital Alchemy Studio — pushing the frontier of web expression.</p></div><div><h4>Navigate</h4><ul style="list-style:none;margin-top:1rem;"><li>Manifesto</li><li>Archive</li><li>Contact</li></ul></div><div><h4>Social</h4><ul style="list-style:none;margin-top:1rem;"><li>Instagram</li><li>Twitter</li><li>Are.na</li></ul></div></div>
+  <div style="border-top:1px solid rgba(255,255,255,0.05);margin-top:3rem;padding-top:2rem;text-align:center;font-size:0.7rem;color:var(--text-muted);">© 2025 VOID STUDIO — Award Winning Digital Craft</div>
+</footer>
+
+<script type="module">
+  import * as THREE from 'three';
+  // THREE.JS HERO
+  const canvas = document.getElementById('three-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 0, 8);
+  const particlesGeometry = new THREE.BufferGeometry();
+  const particleCount = 1800;
+  const positions = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount; i++) {
+    positions[i*3] = (Math.random() - 0.5) * 18;
+    positions[i*3+1] = (Math.random() - 0.5) * 10;
+    positions[i*3+2] = (Math.random() - 0.5) * 12 - 5;
+  }
+  particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const material = new THREE.PointsMaterial({ color: 0xccff00, size: 0.07, transparent: true, opacity: 0.7 });
+  const points = new THREE.Points(particlesGeometry, material);
+  scene.add(points);
+  let mouseX = 0, mouseY = 0;
+  window.addEventListener('mousemove', (e) => { mouseX = (e.clientX / window.innerWidth) * 2 - 1; mouseY = (e.clientY / window.innerHeight) * 2 - 1; });
+  function animate() {
+    requestAnimationFrame(animate);
+    points.rotation.y += 0.002;
+    points.rotation.x = mouseY * 0.5;
+    points.rotation.z = mouseX * 0.3;
+    renderer.render(scene, camera);
+  }
+  function resize() { renderer.setSize(window.innerWidth, window.innerHeight); camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); }
+  window.addEventListener('resize', resize);
+  resize();
+  animate();
+</script>
+
+<script>
+  gsap.registerPlugin(ScrollTrigger, CustomEase);
+  CustomEase.create("hero", "0.33, 1, 0.68, 1");
+  
+  // Loader
+  let loadPercent = 0;
+  const fillEl = document.getElementById('preloaderFill');
+  const percentEl = document.getElementById('preloaderPercent');
+  const preloaderDiv = document.getElementById('preloader');
+  const preloaderTextSpan = document.getElementById('preloaderText');
+  const interval = setInterval(() => {
+    loadPercent += Math.floor(Math.random() * 12) + 3;
+    if (loadPercent >= 100) { loadPercent = 100; clearInterval(interval); }
+    fillEl.style.width = loadPercent + '%';
+    percentEl.innerText = loadPercent + '%';
+    if (loadPercent === 100) {
+      gsap.to(preloaderTextSpan, { y: -50, opacity: 0, duration: 0.5 });
+      gsap.to(preloaderDiv, { yPercent: -100, duration: 1.4, ease: "power4.inOut", onComplete: () => { preloaderDiv.style.display = 'none'; initSite(); } });
+    }
+  }, 50);
+  
+  function initSite() {
+    // Cursor
+    const dot = document.getElementById('cursorDot'), ring = document.getElementById('cursorRing');
+    let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+    document.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; dot.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%,-50%)`; });
+    function smoothRing() { ringX += (mouseX - ringX) * 0.12; ringY += (mouseY - ringY) * 0.12; ring.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%,-50%)`; requestAnimationFrame(smoothRing); }
+    smoothRing();
+    const interactiveElements = document.querySelectorAll('a, button, .work-card, .pricing-card, .btn');
+    interactiveElements.forEach(el => { el.addEventListener('mouseenter', () => document.body.classList.add('hover-active')); el.addEventListener('mouseleave', () => document.body.classList.remove('hover-active')); });
+    
+    // Progress bar
+    window.addEventListener('scroll', () => { const winScroll = document.documentElement.scrollTop, height = document.documentElement.scrollHeight - window.innerHeight, scrolled = (winScroll / height) * 100; document.getElementById('progressBar').style.width = scrolled + '%'; });
+    
+    // Hero text reveal
+    gsap.fromTo(".hero-title .word", { y: "110%", opacity: 0 }, { y: "0%", opacity: 1, duration: 1.2, stagger: 0.08, ease: "hero", delay: 0.5 });
+    gsap.fromTo(".hero-badge", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, delay: 0.8 });
+    gsap.fromTo(".hero-desc span", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, delay: 1.2 });
+    
+    // Nav scroll
+    ScrollTrigger.create({ start: "top -80", onUpdate: (self) => { document.getElementById('navbar').classList.toggle('scrolled', self.progress > 0); } });
+    
+    // Counter animation
+    const counters = document.querySelectorAll('.stat-number');
+    counters.forEach(counter => { const target = parseInt(counter.dataset.count); ScrollTrigger.create({ trigger: counter, start: "top 85%", once: true, onEnter: () => { let current = 0; const update = setInterval(() => { current += Math.ceil(target / 45); if (current >= target) { counter.innerText = target + (counter.dataset.suffix || ''); clearInterval(update); } else counter.innerText = current + (counter.dataset.suffix || ''); }, 30); } }); });
+    
+    // Horizontal scroll work
+    const track = document.getElementById('horizontalTrack');
+    let scrollWidth = track.scrollWidth - window.innerWidth;
+    gsap.to(track, { x: -scrollWidth, ease: "none", scrollTrigger: { trigger: "#work", start: "top top", end: () => "+=" + scrollWidth, scrub: 1.5, pin: true, anticipatePin: 1 } });
+    
+    // Interactive Canvas (particle system)
+    const expCanvas = document.getElementById('interactiveCanvas');
+    if (expCanvas) {
+      const ctxExp = expCanvas.getContext('2d');
+      let width, height, particlesExp = [];
+      function resizeExp() { width = expCanvas.clientWidth; height = expCanvas.clientHeight; expCanvas.width = width; expCanvas.height = height; initParticles(); }
+      function initParticles() { particlesExp = []; for (let i = 0; i < 180; i++) { particlesExp.push({ x: Math.random() * width, y: Math.random() * height, vx: (Math.random() - 0.5) * 0.7, vy: (Math.random() - 0.5) * 0.7, radius: Math.random() * 2 + 1.2 }); } }
+      let mouseXExp = width/2, mouseYExp = height/2;
+      expCanvas.addEventListener('mousemove', (e) => { const rect = expCanvas.getBoundingClientRect(); mouseXExp = e.clientX - rect.left; mouseYExp = e.clientY - rect.top; });
+      function drawExp() { if (!ctxExp) return; ctxExp.clearRect(0, 0, width, height); ctxExp.fillStyle = '#030304'; ctxExp.fillRect(0, 0, width, height); particlesExp.forEach(p => { const dx = p.x - mouseXExp, dy = p.y - mouseYExp, dist = Math.hypot(dx, dy); if (dist < 110) { p.vx += dx * 0.008; p.vy += dy * 0.008; } p.vx *= 0.99; p.vy *= 0.99; p.x += p.vx; p.y += p.vy; if (p.x < 0) p.x = width; if (p.x > width) p.x = 0; if (p.y < 0) p.y = height; if (p.y > height) p.y = 0; ctxExp.beginPath(); ctxExp.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctxExp.fillStyle = `rgba(204, 255, 0, ${0.5 + Math.sin(Date.now() * 0.002) * 0.1})`; ctxExp.fill(); }); requestAnimationFrame(drawExp); }
+      window.addEventListener('resize', () => { resizeExp(); });
+      resizeExp(); drawExp();
+    }
+    
+    // Parallax and Stagger Animations
+    gsap.utils.toArray('.pricing-card').forEach((card, i) => { gsap.fromTo(card, { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, delay: i * 0.1, scrollTrigger: { trigger: card, start: "top 85%", once: true } }); });
+    gsap.fromTo('.work-card', { opacity: 0, x: 80 }, { opacity: 1, x: 0, duration: 1, stagger: 0.12, scrollTrigger: { trigger: "#work", start: "top 70%", once: true } });
+    
+    // Smooth link
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => { anchor.addEventListener('click', function(e) { const href = this.getAttribute('href'); if (href !== "#" && href !== "") { const target = document.querySelector(href); if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); } } }); });
+  }
+</script>
+</body>
+</html>
